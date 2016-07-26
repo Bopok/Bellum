@@ -1,12 +1,17 @@
 /**
  * Created by Bopok on 7/24/2016.
  */
-import javax.imageio.ImageIO;
+
+package com.bopok.bellum;
+
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.*;
-import java.io.File;
 import java.io.IOException;
+import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import com.bopok.bellum.graphics.Screen;
 
 
 public class Game extends Canvas implements Runnable {
@@ -19,13 +24,19 @@ public class Game extends Canvas implements Runnable {
     private boolean running = false;
     private JFrame frame;
     private Thread gameThread;
+    public static String title = "Bellum";
 
-    Background bg = new Background();
+    private Screen screen;
+
+    private BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    private int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 
 
     public Game(){
         Dimension dimension = new Dimension(width * scale, height * scale);
         setPreferredSize(dimension);
+
+        screen = new Screen(width, height);
 
         frame = new JFrame();
 
@@ -48,21 +59,34 @@ public class Game extends Canvas implements Runnable {
 
     public void run(){
         long lastTime = System.nanoTime();
+        long timer = System.currentTimeMillis();
         final double ns = 1000000000.0 / 60.0;
         double delta = 0;
+        int frames = 0;
+        int updates = 0;
+
         while(running){
-            /*long now = System.nanoTime();
+            long now = System.nanoTime();
             delta += (now - lastTime) / ns;
             lastTime = now;
             while (delta >= 1) {
-              update();
-            }*/
-
+                update();
+                updates++;
+                delta--;
+            }
             try {
                 render();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            frames++;
+
+                if (System.currentTimeMillis() - timer > 1000){
+                    timer += 1000;
+                    frame.setTitle(title + " | " + updates + " ups" + frames + " fps");
+                    frames = 0;
+                    updates = 0;
+                }
 
         }
     }
@@ -77,11 +101,16 @@ public class Game extends Canvas implements Runnable {
             createBufferStrategy(3);
             return;
         }
-        Image img = ImageIO.read(new File("D:\\Downloads\\Bellum\\src\\field.jpg"));
+
+        screen.clear();
+        screen.render();
+
+        for(int i = 0; i < pixels.length; i++){
+            pixels[i] = screen.pixels[i];
+        }
+
         Graphics g = bs.getDrawGraphics();
-        g.drawImage(img, 0, 0, null);
-        g.setColor(Color.RED);
-        g.fillRect(width * scale / 2 - 32, height * scale / 2 - 32, 64, 64);
+        g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
         g.dispose();
         bs.show();
     }
@@ -89,7 +118,7 @@ public class Game extends Canvas implements Runnable {
    public static void main(String[] args){
        Game game = new Game();
        game.frame.setResizable(false);
-       game.frame.setTitle("Bellum");
+       game.frame.setTitle("game.title");
        game.frame.add(game);
        game.frame.pack();
        game.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

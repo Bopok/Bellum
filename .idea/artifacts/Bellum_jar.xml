@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Bellum:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Bellum_jar</output-path>
+    <root id="archive" name="Bellum.jar">
+      <element id="module-output" name="Bellum" />
+    </root>
+  </artifact>
+</component>
